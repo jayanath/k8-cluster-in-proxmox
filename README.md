@@ -1,2 +1,2 @@
-# k8-cluster-with-terraform
-Deploying a Kubernetes cluster using Terraform
+# Deploy a K8 cluster in Proxmox using Terraform
+Deploying a Kubernetes cluster in Proxmox using Terraform
