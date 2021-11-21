@@ -1,0 +1,11 @@
+version: 2
+ethernets:
+    ens18:
+        dhcp4: false
+        dhcp6: false
+        addresses:
+          - ${node_ip}
+        gateway4: ${gateway_ip}
+        nameservers:
+          addresses:
+            - ${nameserver_ip}
