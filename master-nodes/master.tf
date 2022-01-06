@@ -8,13 +8,12 @@ terraform {
 }
 
 provider "proxmox" {
+  # make sure to export PM_API_TOKEN_ID and PM_API_TOKEN_SECRET
   pm_tls_insecure     = true
   pm_api_url          = "https://192.168.193.193:8006/api2/json"
-  pm_api_token_id     = "k8admin@pam!k8admin_token_id"
-  pm_api_token_secret = "a428d6ba-856e-4731-a04e-53ae5c87d2a5"
 
   # pm_log_enable = true
-  # pm_log_file   = "tf.log"
+  # pm_log_file   = "master.log"
   # pm_debug      = true
   # pm_log_levels = {
   #   _default    = "debug"
@@ -24,12 +23,15 @@ provider "proxmox" {
 
 # Create a local copy of the file, to transfer to Proxmox
 resource "local_file" "cloud_init_master" {
-  content  = data.template_file.cloud_init_master.rendered
-  filename = "configs/files/cloud_init_master_generated.cfg"
+  count    = var.master_count
+  content  = data.template_file.cloud_init_master[count.index].rendered
+  filename = "configs/files/cloud_init_master${count.index}_generated.cfg"
 }
 
 # Transfer the file to the Proxmox Host
 resource "null_resource" "cloud_init_master" {
+  count = var.master_count
+
   connection {
     type        = "ssh"
     user        = "root"
@@ -38,36 +40,28 @@ resource "null_resource" "cloud_init_master" {
   }
 
   provisioner "file" {
-    source      = local_file.cloud_init_master.filename
-    destination = "/var/lib/vz/snippets/cloud_init_master.yaml"
+    source      = local_file.cloud_init_master[count.index].filename
+    destination = "/var/lib/vz/snippets/cloud_init_master${count.index}.yaml"
   }
 }
 
 resource "proxmox_vm_qemu" "master" {
-  count = 1
+  count = var.master_count
   depends_on = [
     null_resource.cloud_init_master
   ]
   name        = "master-${count.index}"
   target_node = var.proxmox_host
   clone       = var.template_name
-  agent       = 1
-  os_type     = "cloud-init"
-  cores       = 2
-  vcpus       = 2
-  memory      = 2048
-  scsihw      = "virtio-scsi-pci"
   vmid        = count.index + 200
+  cores       = 2
+  sockets     = 1
+  memory      = 4096
 
   disk {
-    size    = "10G"
+    size    = "30G"
     type    = "scsi"
-    storage = "local-lvm"
-  }
-
-  network {
-    model  = "virtio"
-    bridge = "vmbr0"
+    storage = "firestore"
   }
 
   # Ignore changes to the network
@@ -80,7 +74,6 @@ resource "proxmox_vm_qemu" "master" {
   }
 
   # Cloud init options
-  cicustom  = "user=local:snippets/cloud_init_master.yaml"
+  cicustom  = "user=local:snippets/cloud_init_master${count.index}.yaml"
   ipconfig0 = "ip=192.168.193.2${count.index}/24,gw=192.168.193.1"
-  sshkeys   = file("~/.ssh/id_rsa.pub")
 }

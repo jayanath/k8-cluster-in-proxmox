@@ -1,0 +1,23 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - jq
+  - curl
+
+users:
+  - name: jay
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+
+preserve_hostname: false
+manage_etc_hosts: false
+
+runcmd:
+  - systemctl start ssh
+  - hostnamectl set-hostname ${node}.example.com 

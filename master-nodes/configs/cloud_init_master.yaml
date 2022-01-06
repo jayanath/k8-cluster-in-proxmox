@@ -19,8 +19,5 @@ preserve_hostname: false
 manage_etc_hosts: false
 
 runcmd:
-  - ssh-keygen -A
   - systemctl start ssh
-  - hostnamectl set-hostname ${node}
-  - touch /etc/cloud/cloud-init.disabled
- 
+  - hostnamectl set-hostname ${node}.example.com 
