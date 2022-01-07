@@ -9,8 +9,8 @@ terraform {
 
 provider "proxmox" {
   # make sure to export PM_API_TOKEN_ID and PM_API_TOKEN_SECRET
-  pm_tls_insecure     = true
-  pm_api_url          = "https://192.168.193.193:8006/api2/json"
+  pm_tls_insecure = true
+  pm_api_url      = "https://192.168.193.193:8006/api2/json"
 
   # pm_log_enable = true
   # pm_log_file   = "worker.log"
@@ -23,7 +23,7 @@ provider "proxmox" {
 
 # Create a local copy of the file, to transfer to Proxmox
 resource "local_file" "cloud_init_worker" {
-  count = var.worker_count
+  count    = var.worker_count
   content  = data.template_file.cloud_init_worker[count.index].rendered
   filename = "configs/files/cloud_init_worker${count.index}_generated.cfg"
 }
