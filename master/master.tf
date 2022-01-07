@@ -23,15 +23,12 @@ provider "proxmox" {
 
 # Create a local copy of the file, to transfer to Proxmox
 resource "local_file" "cloud_init_master" {
-  count    = var.master_count
-  content  = data.template_file.cloud_init_master[count.index].rendered
-  filename = "configs/files/cloud_init_master${count.index}_generated.cfg"
+  content  = data.template_file.cloud_init_master.rendered
+  filename = "configs/files/cloud_init_master_generated.cfg"
 }
 
 # Transfer the file to the Proxmox Host
 resource "null_resource" "cloud_init_master" {
-  count = var.master_count
-
   connection {
     type        = "ssh"
     user        = "root"
@@ -40,20 +37,19 @@ resource "null_resource" "cloud_init_master" {
   }
 
   provisioner "file" {
-    source      = local_file.cloud_init_master[count.index].filename
-    destination = "/var/lib/vz/snippets/cloud_init_master${count.index}.yaml"
+    source      = local_file.cloud_init_master.filename
+    destination = "/var/lib/vz/snippets/cloud_init_master.yaml"
   }
 }
 
 resource "proxmox_vm_qemu" "master" {
-  count = var.master_count
   depends_on = [
     null_resource.cloud_init_master
   ]
-  name        = "master-${count.index}"
+  name        = "master"
   target_node = var.proxmox_host
   clone       = var.template_name
-  vmid        = count.index + 200
+  vmid        = 200
   cores       = 2
   sockets     = 1
   memory      = 4096
@@ -74,6 +70,6 @@ resource "proxmox_vm_qemu" "master" {
   }
 
   # Cloud init options
-  cicustom  = "user=local:snippets/cloud_init_master${count.index}.yaml"
-  ipconfig0 = "ip=192.168.193.2${count.index}/24,gw=192.168.193.1"
+  cicustom  = "user=local:snippets/cloud_init_master.yaml"
+  ipconfig0 = "ip=192.168.193.20/24,gw=192.168.193.1"
 }
