@@ -42,7 +42,6 @@ qm template 100
 #### Reference: #####
 https://pve.proxmox.com/pve-docs/chapter-qm.html#_preparing_cloud_init_templates
 https://austinsnerdythings.com/2021/08/30/how-to-create-a-proxmox-ubuntu-cloud-init-image/
-## From local machine:
-  - Update the host file accordingly to ssh nodes using hostnames
+
 
 
