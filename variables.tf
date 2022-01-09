@@ -9,3 +9,7 @@ variable "template_name" {
 variable "worker_count" {
   default = 2
 }
+
+variable "private_key_path" {
+  default = "~/.ssh/id_rsa"
+}

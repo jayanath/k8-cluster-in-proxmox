@@ -1,0 +1,15 @@
+[masters]
+master
+
+[workers]    
+worker-0
+worker-1
+
+[masters:vars]
+ansible_user=jay
+
+[workers:vars]
+ansible_user=jay
+
+[cluster:vars]
+ansible_user=jay

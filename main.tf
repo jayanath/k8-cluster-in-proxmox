@@ -124,3 +124,20 @@ resource "proxmox_vm_qemu" "worker" {
   cicustom  = "user=local:snippets/cloud_init_worker${count.index}.yaml"
   ipconfig0 = "ip=192.168.193.3${count.index}/24,gw=192.168.193.1"
 }
+
+
+resource "null_resource" "ansible_handover" {
+  provisioner "remote-exec" {
+    inline = ["echo 'Hello World'"]
+
+    connection {
+      type        = "ssh"
+      user        = "jay"
+      host        = "master"
+      private_key = file("${var.private_key_path}")
+    }
+  }
+  provisioner "local-exec" {
+    command = "ansible-playbook -i 'ansible/inventory' --private-key ${var.private_key_path} ansible/hostname-update.yaml"
+  }
+}
