@@ -10,9 +10,11 @@ This is not production grade at all but perfect for running a 3 node cluster at 
 - Proxmox with API token to create VMs
 - VM template (follow steps below to create a template)
 - CIDR range to setup static IPs for the cluster nodes. Below are the default IPs.
-   - master  192.168.193.20
-   - worker0 192.168.193.30
-   - worker1 192.168.193.31
+```
+master  192.168.193.20
+worker0 192.168.193.30
+worker1 192.168.193.31
+```
 - Terraform and Ansible
 
 # How to use this code
@@ -23,7 +25,7 @@ This is not production grade at all but perfect for running a 3 node cluster at 
 
 # Notes
 - If you want to change the CIDR range/username etc, you may have to dig a little bit. I will update this documentation to make it easier at some point.
-- Check the locations of the SSH keys, I used the usual default locations and file names ( ~/.ssh/id_rsa )
+- Check the locations of the SSH keys, I used the usual default locations and file names ```( ~/.ssh/id_rsa )```
 
 ## How to create a VM template in Proxmox
 ```
