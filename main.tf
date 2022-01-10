@@ -133,7 +133,7 @@ resource "null_resource" "ansible_handover" {
     connection {
       type        = "ssh"
       user        = "jay"
-      host        = "master"
+      host        = "worker-1"
       private_key = file("${var.private_key_path}")
     }
   }

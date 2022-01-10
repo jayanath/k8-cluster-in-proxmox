@@ -7,20 +7,6 @@
   gather_facts: yes
 
   tasks:
-    - name: create the kube user account
-      user: name=kube append=yes state=present createhome=yes shell=/bin/bash
-
-    - name: allow kube to use sudo without needing a password
-      lineinfile:
-        dest: /etc/sudoers
-        line: 'kube ALL=(ALL) NOPASSWD: ALL'
-        validate: 'visudo -cf %s'
-
-    - name: set up authorized keys for the kube user
-      authorized_key: user=kube key="{{item}}"
-      with_file:
-        - ~/.ssh/id_rsa.pub
-
     - name: update hosts files in each node, need a better way of doing this
       shell: |
         echo "192.168.193.20  master.example.com  master" >> /etc/hosts
@@ -73,37 +59,106 @@
 
     - name: apply new settings, again
       shell: sudo sysctl --system
-    
-    - name: install containerd
+
+    - name: install containerd only when the apt process isn't locked
+      apt:
+        name: containerd
+        state: present
+      register: apt_action
+      retries: 100
+      until: apt_action is success or ('Failed to lock apt for exclusive operation' not in apt_action.msg and '/var/lib/dpkg/lock' not in apt_action.msg)
+
+    - name: configure and start containerd
       shell: |
-        sudo apt-get install -y containerd
         sudo mkdir -p /etc/containerd
         containerd config default | sudo tee /etc/containerd/config.toml
         sudo systemctl restart containerd
+        sudo apt-get update
 
-    - name: install and configure dependencies
+    - name: install k8 dependencies only when the apt process isn't locked
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+        state: present
+      register: apt_action
+      retries: 100
+      until: apt_action is success or ('Failed to lock apt for exclusive operation' not in apt_action.msg and '/var/lib/dpkg/lock' not in apt_action.msg)
+
+    - name: configure dependencies and add k8 repos
       shell: |
-        sudo apt-get update &&
-        sudo apt-get install -y apt-transport-https ca-certificates curl
         sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-
-    - name: add k8 repos
-      shell: |
         echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list 
+        sudo apt-get update
 
-    - name: install kubelet, kubeadm and kubectl and pin the versions
-      shell: |
-        sudo apt-get update &&
-        sudo apt-get install -y kubelet kubeadm kubectl
-        sudo apt-mark hold kubelet kubeadm kubectl
+    - name: install kubelet, kubeadm and kubectl only when the apt process isn't locked
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+      register: apt_action
+      retries: 100
+      until: apt_action is success or ('Failed to lock apt for exclusive operation' not in apt_action.msg and '/var/lib/dpkg/lock' not in apt_action.msg)
+
+    - name: pin kubelet, kubeadm and kubectl versions
+      shell: sudo apt-mark hold kubelet kubeadm kubectl
 
 - hosts: masters
-  remote_user: jay
   become: yes
-  become_user: root
-  become_method: sudo
-  gather_facts: yes
 
   tasks:
     - name: initialise cluster with kubeadm in master node
       shell: sudo kubeadm init
+
+    - name: setup kubectl access as normal user
+      become: yes
+      become_user: jay
+      shell: |
+        mkdir -p $HOME/.kube
+        sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+        sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+    - name: setup CNI, giving Weave Net a go
+      become: yes
+      become_user: jay
+      shell: kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+
+    - name: generate the token for joining the worker nodes
+      become: yes
+      become_user: jay
+      shell: kubeadm token create  --print-join-command
+      register: kubernetes_join_command
+
+    - name: write join command to a file
+      become: yes
+      copy:
+        dest: "/tmp/kubernetes_join_command.sh" 
+        content: "{{ kubernetes_join_command.stdout_lines[0] }}"
+
+    - name: fetch join command file to the deploying machine 
+      become: yes
+      ansible.builtin.fetch: 
+        src: "/tmp/kubernetes_join_command.sh"
+        dest: "/tmp/kubernetes_join_command.sh"
+        flat: yes
+
+- hosts: workers
+  become: yes
+
+  tasks:
+    - name: copy k8 cluster join code into worker nodes
+      become: yes
+      copy:
+        src: /tmp/kubernetes_join_command.sh
+        dest: /tmp/kubernetes_join_command.sh
+        owner: root
+        mode: 0777
+
+    - name: join the Worker nodes to the cluster.
+      become: yes
+      become_user: jay
+      shell: sudo sh /tmp/kubernetes_join_command.sh
+      register: joined_or_not
