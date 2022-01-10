@@ -1,15 +1,14 @@
 [masters]
-master
+master.example.com  ansible_host=192.168.193.20
 
 [workers]    
-worker-0
-worker-1
+worker0.example.com  ansible_host=192.168.193.30
+worker1.example.com  ansible_host=192.168.193.31
 
 [masters:vars]
 ansible_user=jay
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 
 [workers:vars]
 ansible_user=jay
-
-[cluster:vars]
-ansible_user=jay
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'

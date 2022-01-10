@@ -138,6 +138,6 @@ resource "null_resource" "ansible_handover" {
     }
   }
   provisioner "local-exec" {
-    command = "ansible-playbook -i 'ansible/inventory' --private-key ${var.private_key_path} ansible/hostname-update.yaml"
+    command = "ansible-playbook -i 'ansible/inventory' --private-key ${var.private_key_path} ansible/k8_cluster_setup.yaml"
   }
 }
