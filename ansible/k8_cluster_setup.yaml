@@ -76,7 +76,6 @@
     
     - name: install containerd
       shell: |
-        sudo apt-get update
         sudo apt-get install -y containerd
         sudo mkdir -p /etc/containerd
         containerd config default | sudo tee /etc/containerd/config.toml
@@ -84,7 +83,7 @@
 
     - name: install and configure dependencies
       shell: |
-        sudo apt-get update
+        sudo apt-get update &&
         sudo apt-get install -y apt-transport-https ca-certificates curl
         sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
 
@@ -94,6 +93,17 @@
 
     - name: install kubelet, kubeadm and kubectl and pin the versions
       shell: |
-        sudo apt-get update
+        sudo apt-get update &&
         sudo apt-get install -y kubelet kubeadm kubectl
         sudo apt-mark hold kubelet kubeadm kubectl
+
+- hosts: masters
+  remote_user: jay
+  become: yes
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
+
+  tasks:
+    - name: initialise cluster with kubeadm in master node
+      shell: sudo kubeadm init

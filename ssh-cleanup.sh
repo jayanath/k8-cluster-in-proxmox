@@ -4,6 +4,13 @@ set -eo pipefail
 
 [[ -n "${VERBOSE}" ]] && set -x
 
-ssh-keygen -R 192.168.193.20
-ssh-keygen -R 192.168.193.30
-ssh-keygen -R 192.168.193.31
+ssh-keygen -R master.example.com
+ssh-keygen -R worker0.example.com
+ssh-keygen -R worker1.example.com
+ssh-keygen -R master
+ssh-keygen -R worker0
+ssh-keygen -R worker1
+ssh-keygen -R worker-0
+ssh-keygen -R worker-1
+
+
