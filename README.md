@@ -1,16 +1,32 @@
 # Deploy a K8 cluster in Proxmox using Terraform and Ansible
-Deploying a Kubernetes cluster in Proxmox using Terraform and Ansible
-
 Running a kube cluster in any public cloud provider is a costly business.
 There are many ways to deploy a local cluster with virtualbox, kind etc.
 However I wanted to use Proxmox with my home server and I could not find any complete example of deploying a fully automated cluster using Terraform and Ansible.
 So I created this repo.
 This is not production grade at all but perfect for running a 3 node cluster at home.
+
+
 # Pre-requisits
 - Proxmox with API token to create VMs
 - VM template (follow steps below to create a template)
-- CIDR range to setup static IPs for the cluster nodes
+- CIDR range to setup static IPs for the cluster nodes. Below are the default IPs.
+```
+master  192.168.193.20
+worker0 192.168.193.30
+worker1 192.168.193.31
+```
 - Terraform and Ansible
+
+# How to use this code
+- Make sure you have all the pre-requisites
+- Clone this repo
+- Run Terraform init from the root folder
+- Run Terraform apply
+
+# Notes
+- If you want to change the CIDR range/username etc, you may have to dig a little bit. I will update this documentation to make it easier at some point.
+- Check the locations of the SSH keys, I used the usual default locations and file names ```( ~/.ssh/id_rsa )```
+
 ## How to create a VM template in Proxmox
 ```
 # download the cloud image 
