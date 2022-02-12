@@ -27,7 +27,7 @@ worker1 192.168.193.31
 - If you want to change the CIDR range/username etc, you may have to dig a little bit. I will update this documentation to make it easier at some point.
 - Check the locations of the SSH keys, I used the usual default locations and file names ```( ~/.ssh/id_rsa )```
 - Use MetalLB https://metallb.universe.tf/installation/ to play with Ingress and Ingress Controller.
-- Use https://github.com/kubernetes-sigs/metrics-server metrics server, but make sure to ```--kubelet-insecure-tls``` to get it running. 
+- Use https://github.com/kubernetes-sigs/metrics-server metrics server, but make sure to update the deployment with ```--kubelet-insecure-tls``` arg to get it running. 
 ## How to create a VM template in Proxmox
 ```
 # download the cloud image 
