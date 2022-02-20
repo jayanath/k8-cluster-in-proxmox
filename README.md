@@ -20,6 +20,7 @@ worker1 192.168.193.31
 # How to use this code
 - Make sure you have all the pre-requisites
 - Clone this repo
+- Export PM_API_TOKEN_ID and PM_API_TOKEN_SECRET
 - Run Terraform init from the root folder
 - Run Terraform apply
 
