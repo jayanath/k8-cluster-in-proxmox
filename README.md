@@ -33,7 +33,7 @@ worker1 192.168.193.31
 ```
 # download the cloud image 
 cd /var/lib/vz/template/iso
-wget https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
+wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
 
 # install libguestfs-tools to directly install qemu-guest-agent into the iso
 apt-get install libguestfs-tools
