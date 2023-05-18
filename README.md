@@ -34,31 +34,32 @@ worker1 192.168.193.31
 ```
 # download the cloud image
 cd /var/lib/vz/template/iso
-wget https://cloud-images.ubuntu.com/mantic/current/mantic-server-cloudimg-amd64.img
+# latest LTS version
+wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
 
 # create a new VM
-qm create 110 --name "ubuntu-2310-mantic-cloudinit-template" --memory 4096 --cores 2 --net0 virtio,bridge=vmbr0
+qm create 100 --name "ubuntu-2204-jammy-cloudinit-template" --memory 4096 --cores 2 --net0 virtio,bridge=vmbr0
 
 # import the downloaded disk to local-lvm storage
-qm importdisk 110 mantic-server-cloudimg-amd64.img local-lvm
+qm importdisk 100 jammy-server-cloudimg-amd64.img local-lvm
 
 # finally attach the new disk to the VM as scsi drive
-qm set 110 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-110-disk-0
+qm set 100 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-100-disk-0
 
 # configure a CD-ROM drive, which will be used to pass the Cloud-Init data to the VM
-qm set 110 --ide2 local-lvm:cloudinit
+qm set 100 --ide2 local-lvm:cloudinit
 
 # to be able to boot directly from the Cloud-Init image, set the bootdisk parameter to scsi0
-qm set 110 --boot c --bootdisk scsi0
+qm set 100 --boot c --bootdisk scsi0
 
 # configure a serial console and use it as a display
-qm set 110 --serial0 socket --vga serial0
+qm set 100 --serial0 socket --vga serial0
 
 # enable the agent
-qm set 110 --agent=1
+qm set 100 --agent=1
 
 # convert the VM into a template
-qm template 110
+qm template 100
 ```
 
 #### Reference: #####

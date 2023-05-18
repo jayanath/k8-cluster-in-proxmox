@@ -7,7 +7,8 @@ manage_etc_hosts: false
 
 packages:
   - jq
-  - curl
+  - apt-transport-https
+  - gnupg2
 
 users:
   - name: jay
