@@ -2,7 +2,7 @@ terraform {
   required_providers {
     proxmox = {
       source  = "telmate/proxmox"
-      version = "2.9.1"
+      version = "2.9.11"
     }
   }
 }
@@ -84,7 +84,7 @@ resource "proxmox_vm_qemu" "master" {
 
   # Ignore changes to the network
   ## MAC address is generated on every apply, causing
-  ## TF to think this needs to be rebuilt on every apply  
+  ## TF to think this needs to be rebuilt on every apply
   lifecycle {
     ignore_changes = [
       network,
@@ -113,7 +113,7 @@ resource "proxmox_vm_qemu" "worker" {
 
   # Ignore changes to the network
   ## MAC address is generated on every apply, causing
-  ## TF to think this needs to be rebuilt on every apply  
+  ## TF to think this needs to be rebuilt on every apply
   lifecycle {
     ignore_changes = [
       network,
