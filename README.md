@@ -7,7 +7,8 @@ This is not production grade at all but perfect for running a 3 node cluster at 
 
 
 # Pre-requisits
-- Proxmox with API token to create VMs
+- Create a user with API token in Proxmox following this guide https://registry.terraform.io/providers/Telmate/proxmox/latest/docs
+- Make sure NOT to enable privilege separation for the API key. Otherwise Terraform will not be able to find the VM template.
 - VM template (follow steps below to create a template)
 - CIDR range to setup static IPs for the cluster nodes. Below are the default IPs.
 ```
@@ -28,24 +29,19 @@ worker1 192.168.193.31
 - If you want to change the CIDR range/username etc, you may have to dig a little bit. I will update this documentation to make it easier at some point.
 - Check the locations of the SSH keys, I used the usual default locations and file names ```( ~/.ssh/id_rsa )```
 - Use MetalLB https://metallb.universe.tf/installation/ to play with Ingress and Ingress Controller.
-- Use https://github.com/kubernetes-sigs/metrics-server metrics server, but make sure to update the deployment with ```--kubelet-insecure-tls``` arg to get it running. 
+- Use https://github.com/kubernetes-sigs/metrics-server metrics server, but make sure to update the deployment with ```--kubelet-insecure-tls``` arg to get it running.
 ## How to create a VM template in Proxmox
 ```
-# download the cloud image 
+# download the cloud image
 cd /var/lib/vz/template/iso
-wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
-
-# install libguestfs-tools to directly install qemu-guest-agent into the iso
-apt-get install libguestfs-tools
-
-# install qemu-guest-agent
-virt-customize -a focal-server-cloudimg-amd64.img --install qemu-guest-agent
+# latest LTS version
+wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
 
 # create a new VM
-qm create 100 --name "ubuntu-2004-cloudinit-template" --memory 4096 --cores 2 --net0 virtio,bridge=vmbr0
+qm create 100 --name "ubuntu-2204-jammy-cloudinit-template" --memory 4096 --cores 2 --net0 virtio,bridge=vmbr0
 
 # import the downloaded disk to local-lvm storage
-qm importdisk 100 focal-server-cloudimg-amd64.img local-lvm
+qm importdisk 100 jammy-server-cloudimg-amd64.img local-lvm
 
 # finally attach the new disk to the VM as scsi drive
 qm set 100 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-100-disk-0
@@ -60,7 +56,7 @@ qm set 100 --boot c --bootdisk scsi0
 qm set 100 --serial0 socket --vga serial0
 
 # enable the agent
-qm set 100 –-agent 1
+qm set 100 --agent=1
 
 # convert the VM into a template
 qm template 100

@@ -3,7 +3,7 @@ variable "proxmox_host" {
 }
 
 variable "template_name" {
-  default = "ubuntu-2004-cloudinit-template"
+  default = "ubuntu-2204-jammy-cloudinit-template"
 }
 
 variable "worker_count" {
