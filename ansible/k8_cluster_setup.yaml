@@ -55,9 +55,12 @@
         sudo curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_22.04/Release.key | gpg --dearmor -o /usr/share/keyrings/libcontainers-archive-keyring.gpg
         sudo curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/1.26/xUbuntu_22.04/Release.key | gpg --dearmor -o /usr/share/keyrings/libcontainers-crio-archive-keyring.gpg
 
-    - name: install cri-o only when the apt process isn't locked
+    - name: Run the equivalent of "apt-get update" as a separate step
       ansible.builtin.apt:
         update_cache: yes
+
+    - name: install cri-o only when the apt process isn't locked
+      ansible.builtin.apt:
         name:
           - cri-o
           - cri-o-runc
@@ -89,9 +92,12 @@
         sudo curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://dl.k8s.io/apt/doc/apt-key.gpg
         echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
-    - name: install kubelet, kubeadm and kubectl only when the apt process isn't locked
+    - name: Run the equivalent of "apt-get update" as a separate step
       ansible.builtin.apt:
         update_cache: yes
+
+    - name: install kubelet, kubeadm and kubectl only when the apt process isn't locked
+      ansible.builtin.apt:
         name:
           - kubelet
           - kubeadm
