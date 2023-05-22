@@ -8,16 +8,17 @@
 
   tasks:
     - name: update hosts files in each node, need a better way of doing this
-      shell: |
+      ansible.builtin.shell: |
         echo "192.168.193.20  master.example.com  master" >> /etc/hosts
         echo "192.168.193.30  worker0.example.com  worker-0" >> /etc/hosts
         echo "192.168.193.31  worker1.example.com  worker-1" >> /etc/hosts
 
     - name: disable firewall to make it easy for now
-      shell: sudo ufw disable
+      ansible.builtin.shell: |
+        sudo ufw disable
 
     - name: disable swap
-      shell: |
+      ansible.builtin.shell: |
         sudo swapoff -a
         sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 
@@ -29,7 +30,7 @@
           br_netfilter
 
     - name: modprobe
-      shell: |
+      ansible.builtin.shell: |
         sudo modprobe overlay
         sudo modprobe br_netfilter
 
@@ -42,10 +43,11 @@
           net.ipv4.ip_forward = 1
 
     - name: apply new settings without reboot
-      shell: sudo sysctl --system
+      ansible.builtin.shell: |
+        sudo sysctl --system
 
     - name: setup cri-o
-      shell: |
+      ansible.builtin.shell: |
         sudo echo "deb [signed-by=/usr/share/keyrings/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_22.04/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
         sudo echo "deb [signed-by=/usr/share/keyrings/libcontainers-crio-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/1.26/xUbuntu_22.04/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:1.26.list
 
@@ -53,10 +55,12 @@
         sudo curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_22.04/Release.key | gpg --dearmor -o /usr/share/keyrings/libcontainers-archive-keyring.gpg
         sudo curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/1.26/xUbuntu_22.04/Release.key | gpg --dearmor -o /usr/share/keyrings/libcontainers-crio-archive-keyring.gpg
 
-        sudo apt-get update
+    - name: Run the equivalent of "apt-get update" as a separate step
+      ansible.builtin.apt:
+        update_cache: yes
 
     - name: install cri-o only when the apt process isn't locked
-      apt:
+      ansible.builtin.apt:
         name:
           - cri-o
           - cri-o-runc
@@ -66,7 +70,7 @@
       until: apt_action is success or ('Failed to lock apt for exclusive operation' not in apt_action.msg and '/var/lib/dpkg/lock' not in apt_action.msg)
 
     - name: start cri-o
-      shell: |
+      ansible.builtin.shell: |
         sudo systemctl daemon-reload
         sudo systemctl enable crio
         sudo systemctl start crio
@@ -80,17 +84,20 @@
           net.bridge.bridge-nf-call-ip6tables = 1
 
     - name: apply new settings, again
-      shell: sudo sysctl --system
+      ansible.builtin.shell: |
+        sudo sysctl --system
 
     - name: configure dependencies and add k8 repos
-      shell: |
-        sudo apt-get update
+      ansible.builtin.shell: |
         sudo curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://dl.k8s.io/apt/doc/apt-key.gpg
         echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-        sudo apt-get update
+
+    - name: Run the equivalent of "apt-get update" as a separate step
+      ansible.builtin.apt:
+        update_cache: yes
 
     - name: install kubelet, kubeadm and kubectl only when the apt process isn't locked
-      apt:
+      ansible.builtin.apt:
         name:
           - kubelet
           - kubeadm
@@ -101,19 +108,21 @@
       until: apt_action is success or ('Failed to lock apt for exclusive operation' not in apt_action.msg and '/var/lib/dpkg/lock' not in apt_action.msg)
 
     - name: pin kubelet, kubeadm and kubectl versions
-      shell: sudo apt-mark hold kubelet kubeadm kubectl
+      ansible.builtin.shell: |
+        sudo apt-mark hold kubelet kubeadm kubectl
 
 - hosts: masters
   become: yes
 
   tasks:
     - name: initialise cluster with kubeadm in master node
-      shell: sudo kubeadm init
+      ansible.builtin.shell: |
+        sudo kubeadm init
 
     - name: setup kubectl access as normal user
       become: yes
       become_user: jay
-      shell: |
+      ansible.builtin.shell: |
         mkdir -p $HOME/.kube
         sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
         sudo chown $(id -u):$(id -g) $HOME/.kube/config
@@ -121,13 +130,14 @@
     - name: setup CNI, giving Weave Net a go
       become: yes
       become_user: jay
-      shell: |
+      ansible.builtin.shell: |
         kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
 
     - name: generate the token for joining the worker nodes
       become: yes
       become_user: jay
-      shell: kubeadm token create  --print-join-command
+      ansible.builtin.shell: |
+        kubeadm token create  --print-join-command
       register: kubernetes_join_command
 
     - name: write join command to a file
@@ -158,5 +168,6 @@
     - name: join the Worker nodes to the cluster.
       become: yes
       become_user: jay
-      shell: sudo sh /tmp/kubernetes_join_command.sh
+      ansible.builtin.shell: |
+        sudo sh /tmp/kubernetes_join_command.sh
       register: joined_or_not
