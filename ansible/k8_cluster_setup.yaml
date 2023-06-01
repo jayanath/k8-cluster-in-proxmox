@@ -58,6 +58,10 @@
     - name: Run the equivalent of "apt-get update" as a separate step
       ansible.builtin.apt:
         update_cache: yes
+      register: result
+      retries: 100
+      delay: 10
+      until: result is not failed
 
     - name: install cri-o only when the apt process isn't locked
       ansible.builtin.apt:
@@ -65,9 +69,10 @@
           - cri-o
           - cri-o-runc
         state: present
-      register: apt_action
+      register: result
       retries: 100
-      until: apt_action is success or ('Failed to lock apt for exclusive operation' not in apt_action.msg and '/var/lib/dpkg/lock' not in apt_action.msg)
+      delay: 10
+      until: result is not failed
 
     - name: start cri-o
       ansible.builtin.shell: |
@@ -95,6 +100,10 @@
     - name: Run the equivalent of "apt-get update" as a separate step
       ansible.builtin.apt:
         update_cache: yes
+      register: result
+      retries: 100
+      delay: 10
+      until: result is not failed
 
     - name: install kubelet, kubeadm and kubectl only when the apt process isn't locked
       ansible.builtin.apt:
@@ -103,9 +112,10 @@
           - kubeadm
           - kubectl
         state: present
-      register: apt_action
+      register: result
       retries: 100
-      until: apt_action is success or ('Failed to lock apt for exclusive operation' not in apt_action.msg and '/var/lib/dpkg/lock' not in apt_action.msg)
+      delay: 10
+      until: result is not failed
 
     - name: pin kubelet, kubeadm and kubectl versions
       ansible.builtin.shell: |
