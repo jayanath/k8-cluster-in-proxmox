@@ -1,5 +1,5 @@
 # more info
-# https://metallb.universe.tf/installation/
+## https://metallb.universe.tf/installation/
 
 # 1. see what changes would be made, returns nonzero returncode if different
 kubectl get configmap kube-proxy -n kube-system -o yaml | \
