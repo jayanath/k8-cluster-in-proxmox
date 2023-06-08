@@ -137,12 +137,6 @@
         sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
         sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-    - name: setup CNI, giving Weave Net a go
-      become: yes
-      become_user: jay
-      ansible.builtin.shell: |
-        kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
-
     - name: generate the token for joining the worker nodes
       become: yes
       become_user: jay

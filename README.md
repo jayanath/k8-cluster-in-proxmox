@@ -10,7 +10,7 @@ This is not production grade at all but perfect for running a 3 node cluster at 
 - Create a user with API token in Proxmox following this guide https://registry.terraform.io/providers/Telmate/proxmox/latest/docs
 - Make sure NOT to enable privilege separation for the API key. Otherwise Terraform will not be able to find the VM template.
 - VM template (follow steps below to create a template)
-- CIDR range to setup static IPs for the cluster nodes. Below are the default IPs.
+- `CIDR` range to setup static IPs for the cluster nodes. Below are the default IPs.
 ```
 master  192.168.193.20
 worker0 192.168.193.30
@@ -21,11 +21,13 @@ worker1 192.168.193.31
 # How to use this code
 - Make sure you have all the pre-requisites
 - Clone this repo
-- Export PM_API_TOKEN_ID and PM_API_TOKEN_SECRET
-- Run Terraform init from the root folder
-- Run Terraform apply
+- Export `PM_API_TOKEN_ID` and `PM_API_TOKEN_SECRET`
+- Run `Terraform init` from the root folder
+- Run `Terraform apply`
+- `SSH` into nodes as needed with user `jay`
 
 # Notes
+- Make sure to install a `CNI` plugin. Cilium and WeaveNet are some of the options.
 - If you want to change the CIDR range/username etc, you may have to dig a little bit. I will update this documentation to make it easier at some point.
 - Check the locations of the SSH keys, I used the usual default locations and file names ```( ~/.ssh/id_rsa )```
 - Use MetalLB https://metallb.universe.tf/installation/ to play with Ingress and Ingress Controller.
